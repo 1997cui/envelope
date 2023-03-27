@@ -20,5 +20,13 @@
 		<input type="submit" value="Generate PDF" name="pdfgenerate">
 		<input type="submit" value="Generate HTML" name="htmlgenerate">
 	</form>
+	<br>
+	<form method="POST" action="{{ url_for('track') }}" target="_blank">
+		<label for="serial">Serial:</label><br>
+		<input name="serial" type="text"></input><br>
+		<label for="receipt_zip">Receipt zip (5, 9, or 11 digits):</label><br>
+		<input type="text" name="receipt_zip"></input><br/>
+		<input type="submit" value="Track">
+	</form>
 </body>
 </html>

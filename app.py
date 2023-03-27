@@ -1,13 +1,20 @@
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, jsonify
 import imb
 import config
 import pdfkit
+import usps_api
 
 app = Flask(__name__)
 
 
 def generate_human_readable(receipt_zip: int, serial: int):
     return "{0:02d}-{1:03d}-{2:d}-{3:06d}-{4:d}".format(config.BARCODE_ID, config.SRV_TYPE, config.MAILER_ID, serial, receipt_zip)
+
+def query_usps_tracking(receipt_zip: int, serial: int):
+    imb = generate_human_readable(receipt_zip, serial)
+    imb = imb.replace('-', '')
+    print(imb)
+    return usps_api.get_piece_tracking(imb)
 
 @app.route('/')
 def index():
@@ -44,6 +51,18 @@ def generate():
         response.headers['Content-Disposition'] = 'attachment; filename=envelope.pdf'
         return response
     return "Empty"
+
+@app.route('/track', methods=['POST'])
+def track():
+    try:
+        receipt_zip = int(request.form['receipt_zip'])
+        serial = int(request.form['serial'])
+    except:
+        response = "Serial number or receipt zip is not number!"
+        return response
+    result = query_usps_tracking(receipt_zip, serial)
+    return jsonify(result)
+    
 
 if __name__ == '__main__':
     app.run(debug=True)

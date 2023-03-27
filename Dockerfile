@@ -9,7 +9,7 @@ COPY requirements.txt .
 
 # install dependencies
 RUN apt-get update 
-RUN apt-get install apt-utils
+RUN apt-get install -y apt-utils redis-server
 RUN apt-get install -y wget fonts-liberation fonts-wqy-zenhei fonts-arphic-uming
 
 RUN pip install --no-cache-dir -r requirements.txt
@@ -26,4 +26,4 @@ ENV SCRIPT_NAME=/envelope
 
 EXPOSE 8080
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "app:app"]
+CMD ["./entrypoint.sh"]
