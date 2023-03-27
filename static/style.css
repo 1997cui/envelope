@@ -1,0 +1,56 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+@font-face {
+    font-family: 'USPSIMBStandard';
+    src: url('USPSIMBStandard.ttf') format('truetype');
+}
+
+.envelope {
+    width: 9.5in;
+    height: 4.125in;
+    border: 1px solid black;
+    padding: 0.25in;
+    transform-origin: left top;
+    page-break-after: always;
+    position: absolute;
+}
+
+.sender-address {
+    width: 4in;
+    height: 1.5in;
+    position: absolute;
+}
+
+.recipient-address {
+    width: 4in;
+    height: 2.5in;
+    position: absolute;
+    left: 5in;
+    bottom: 0.625in;
+}
+
+.recipient-address {
+    width: 4in;
+    height: 2.5in;
+    position: absolute;
+    left: 5in;
+    bottom: 0.625in;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.usps-barcode {
+    font-family: "USPSIMBStandard";
+    font-size: 16pt;
+}
+
+.barcode-humanreadable {
+    font-size: 10pt;
+}

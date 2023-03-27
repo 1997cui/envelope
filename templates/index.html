@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Envelope Generator by Tianyi</title>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+	<h1>Envelope Generator</h1>
+	<form method="POST" action="{{ url_for('generate') }}" target="_blank">
+		<label for="sender_address">Sender Address:</label><br>
+		<textarea name="sender_address" rows="4" cols="50"></textarea><br>
+
+		<label for="recipient_address">Recipient Address:</label><br>
+		<textarea name="recipient_address" rows="4" cols="50"></textarea><br>
+
+		<label for="serial">Serial:</label><br>
+		<input name="serial" type="text"></input><br>
+		<label for="receipt_zip">Receipt zip (5, 9, or 11 digits):</label><br>
+		<input type="text" name="receipt_zip"></input><br/>
+		<input type="submit" value="Generate PDF" name="pdfgenerate">
+		<input type="submit" value="Generate HTML" name="htmlgenerate">
+	</form>
+</body>
+</html>

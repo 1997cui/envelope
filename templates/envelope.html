@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Com-10 Envelope</title>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+	<div class="envelope">
+		<div class="sender-address">
+			<!-- Sender address block -->
+			{% for line in sender_address.split('\n') %}
+            {{ line }}<br/>
+            {% endfor %}
+		</div>
+		<div class="recipient-address">
+			<!-- Receipt address block -->
+			<div class="usps-barcode">
+				{{ barcode|safe }}
+			</div>
+            <div class="barcode-humanreadable">
+                {{human_readable_bar|safe}}
+            </div>
+            <div class="recipient-text">
+			    {% for line in recipient_address.split('\n') %}
+                {{ line }}<br/>
+                {% endfor %}
+            </div>
+		</div>
+	</div>
+</body>
+</html>
