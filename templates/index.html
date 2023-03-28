@@ -1,12 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Envelope Generator by Tianyi</title>
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+  <title>Envelope Generator by Tianyi</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.container {
+  border: 2px solid #000;
+  border-radius: 5px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  text-align: center;
+}
+</style>
 </head>
 <body>
-	<h1>Envelope Generator</h1>
-	<form method="POST" action="{{ url_for('generate') }}" target="_blank">
+  <h1>Envelope Generator</h1>
+
+  <div class="container">
+    <h2>Generate Envelope</h2>
+    <form method="POST" action="{{ url_for('generate') }}" target="_blank">
 		<label for="sender_address">Sender Address:</label><br>
 		<textarea name="sender_address" rows="4" cols="50"></textarea><br>
 
@@ -14,19 +29,25 @@
 		<textarea name="recipient_address" rows="4" cols="50"></textarea><br>
 
 		<label for="serial">Serial:</label><br>
-		<input name="serial" type="text"></input><br>
+		<input name="serial" type="text" maxlength="6" pattern="\d*" title="Enter up to 6 digits"></input><br>
 		<label for="receipt_zip">Receipt zip (5, 9, or 11 digits):</label><br>
-		<input type="text" name="receipt_zip"></input><br/>
+		<input type="text" name="receipt_zip" maxlength="11" pattern="\d*" title="Enter 5, 9, or 11 digits"></input><br/>
 		<input type="submit" value="Generate PDF" name="pdfgenerate">
 		<input type="submit" value="Generate HTML" name="htmlgenerate">
 	</form>
-	<br>
-	<form method="POST" action="{{ url_for('track') }}" target="_blank">
-		<label for="serial">Serial:</label><br>
-		<input name="serial" type="text"></input><br>
+  </div>
+
+  <div class="container">
+    <h2>Track Mail</h2>
+    <form method="POST" action="{{ url_for('track') }}" target="_blank">
+		<label for="serial">Serial (At most 6 digits):</label><br>
+		<input name="serial" type="text" maxlength="6" pattern="\d*" title="Enter up to 6 digits"></input><br>
 		<label for="receipt_zip">Receipt zip (5, 9, or 11 digits):</label><br>
-		<input type="text" name="receipt_zip"></input><br/>
+		<input type="text" name="receipt_zip" maxlength="11" pattern="\d*" title="Enter 5, 9, or 11 digits"></input><br/>
 		<input type="submit" value="Track">
 	</form>
+  </div>
+
+  <p><strong>Usage:</strong> Use the "Generate Envelope" section to create a PDF or HTML envelope and print it. After mailing the envelope, use the "Track Mail" section to track its status. For the serial number, use a unique 6-digit number that hasn't been used in the past 60 days.</p>
 </body>
 </html>

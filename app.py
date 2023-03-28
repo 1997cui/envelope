@@ -13,7 +13,6 @@ def generate_human_readable(receipt_zip: int, serial: int):
 def query_usps_tracking(receipt_zip: int, serial: int):
     imb = generate_human_readable(receipt_zip, serial)
     imb = imb.replace('-', '')
-    print(imb)
     return usps_api.get_piece_tracking(imb)
 
 @app.route('/')
@@ -61,8 +60,13 @@ def track():
         response = "Serial number or receipt zip is not number!"
         return response
     result = query_usps_tracking(receipt_zip, serial)
-    return jsonify(result)
-    
+    if 'error' in result:
+        message = "{}: {}. Details: {}".format(result['error'], result['error_description'], result['details'])
+        return render_template("tracking.html", error_message=message)
+    elif 'message' in result and result['message']:
+        return render_template("tracking.html", error_message=result['message'])
+    else:
+        return render_template("tracking.html", data=result['data'])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Information</title>
+</head>
+<body>
+    <h1>Tracking Information</h1>
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% elif message %}
+        <p>{{ message }}</p>
+    {% else %}
+        <p>Expected Delivery Date: {{ data.expected_delivery_date }}</p>
+        <p>Mail Class: {{ data.mail_class }}</p>
+        <p>Mail Shape: {{ data.mail_shape }}</p>
+        <p>Start The Clock Date: {{ data.start_the_clock_date }}</p>
+        <p>Start The Clock Facility Name: {{ data.start_the_clock_facility_name }}</p>
+        <p>Start The Clock Facility City: {{ data.start_the_clock_facility_city }}</p>
+        <p>Start The Clock Facility State: {{ data.start_the_clock_facility_state }}</p>
+        <p>Start The Clock Facility ZIP: {{ data.start_the_clock_facility_zip }}</p>
+        <table border="1">
+            <tr>
+                <th>Event</th>
+                <th>Handling Event Type</th>
+                <th>Mail Phase</th>
+                <th>Machine Name</th>
+                <th>Scanner Type</th>
+                <th>Date/Time</th>
+                <th>Facility Name</th>
+                <th>Locale Key</th>
+                <th>City</th>
+                <th>State</th>
+                <th>ZIP</th>
+            </tr>
+            {% for scan in data.scans %}
+            <tr>
+                <td>{{ scan.scan_date_time }}</td>
+                <td>{{ scan.scan_event_code }}</td>
+                <td>{{ scan.handling_event_type | default('N/A') }}</td>
+                <td>{{ scan.mail_phase | default('N/A') }}</td>
+                <td>{{ scan.machine_name | default('N/A') }}</td>
+                <td>{{ scan.scanner_type | default('N/A') }}</td>
+                <td>{{ scan.scan_facility_name | default('N/A') }}</td>
+                <td>{{ scan.scan_facility_locale_key | default('N/A') }}</td>
+                <td>{{ scan.scan_facility_city | default('N/A') }}</td>
+                <td>{{ scan.scan_facility_state | default('N/A') }}</td>
+                <td>{{ scan.scan_facility_zip | default('N/A') }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+    <br>
+</body>
+</html>
