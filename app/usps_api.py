@@ -1,6 +1,6 @@
 import requests
 import json
-import config
+from . import config
 import redis
 import datetime
 import time

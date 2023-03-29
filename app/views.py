@@ -1,11 +1,9 @@
 from flask import Flask, render_template, request, make_response, jsonify
-import imb
-import config
+from . import imb
+from . import config
 import pdfkit
-import usps_api
-
-app = Flask(__name__)
-
+from . import usps_api
+from . import app
 
 def generate_human_readable(receipt_zip: int, serial: int):
     return "{0:02d}-{1:03d}-{2:d}-{3:06d}-{4:d}".format(config.BARCODE_ID, config.SRV_TYPE, config.MAILER_ID, serial, receipt_zip)
@@ -68,5 +66,3 @@ def track():
     else:
         return render_template("tracking.html", data=result['data'])
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
