@@ -121,7 +121,6 @@ def track():
 def validate_address():
     zip = str(request.form['zip'])
     zip5 = zip[:5]
-    print("!!!", zip5)
     address = {
         'address1': request.form['address1'],
         'address2': request.form['address2'],
