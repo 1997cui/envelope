@@ -26,6 +26,44 @@ h2 {
   margin: 5px;
 }
 </style>
+<script>
+  function validateAddress() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/validate_address');
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    
+    var address = {
+      firmname: encodeURIComponent(document.querySelector("input[name='recipient_company']").value.trim()),
+      address1: encodeURIComponent(document.querySelector("input[name='recipient_address2']").value.trim()),
+      address2: encodeURIComponent(document.querySelector("input[name='recipient_street']").value.trim()),
+      city: encodeURIComponent(document.querySelector("input[name='recipient_city']").value.trim()),
+      state: encodeURIComponent(document.querySelector("input[name='recipient_state']").value.trim()),
+      zip: encodeURIComponent(document.querySelector("input[name='recipient_zip']").value.trim())
+    };
+    
+    var urlencoded_data = Object.entries(address).map(([key, value]) => `${key}=${value}`).join('&');
+    
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+        var address = JSON.parse(xhr.responseText);
+        
+        if (address.error) {
+          // handle error - display message, etc.
+          alert('Error validating address: ' + address.error);
+        } else {
+          document.querySelector("input[name='recipient_company']").value = address.firmname;
+          document.querySelector("input[name='recipient_address2']").value = address.address1;
+          document.querySelector("input[name='recipient_street']").value = address.address2;
+          document.querySelector("input[name='recipient_city']").value = address.city;
+          document.querySelector("input[name='recipient_state']").value = address.state;
+          document.querySelector("input[name='recipient_zip']").value = address.zip5 + address.zip4 + address.dp;
+        }
+      }
+    };
+    
+    xhr.send(urlencoded_data);
+  }
+</script>
 </head>
 <body>
   <h1>Envelope Generator</h1>
@@ -37,6 +75,7 @@ h2 {
 		<textarea name="sender_address" rows="4" cols="50"></textarea><br>
 
 		<label>Recipient Address:</label><br>
+<br>
     <label for="recipient_name">Name:</label><br>
     <div class="flex-container">
       <input type="text" name="recipient_name" maxlength="100" class="flex-item"><br>
@@ -58,7 +97,9 @@ h2 {
         <input type="text" name="recipient_city" maxlength="100" style="width: 30%;" class="flex-item">
         <input type="text" name="recipient_state" maxlength="2" minlength="2" style="width: 10%;" class="flex-item">
         <input type="text" name="recipient_zip" maxlength="11" pattern="\d*" title="Enter 5, 9, or 11 digits" style="width: 20%;" class="flex-item"><br/>
-      </div>
+    </div>
+    <button onclick="validateAddress();" type="button">Validate Address</button>
+    <br/><br/>
 		<input type="submit" value="Generate" name="generate">
 	</form>
   </div>

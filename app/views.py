@@ -45,14 +45,21 @@ def generate():
     try:
         recipient_zip = int(request.form['recipient_zip'])
     except:
-        response = "Serial number or receipt zip is not number!"
+        response = "Recipient zip is not number!"
         return response
+    if len(str(request.form['recipient_zip'])) < 5:
+        response = "Invalid recipient zip"
+        return response
+    zip = zip5 = str(request.form['recipient_zip'])[:5]
+    if len(str(request.form['recipient_zip'])) > 5:
+        zip4 = str(request.form['recipient_zip'])[5:9]
+        zip = f"{zip5}-{zip4}"
     recipient_address_parts = [
         recipient_name,
         recipient_company,
         recipient_street,
         recipient_address2,
-        f"{recipient_city}, {recipient_state}, {request.form['recipient_zip']}"
+        f"{recipient_city}, {recipient_state}, {zip}"
     ]
     recipient_address = '\n'.join(filter(bool, recipient_address_parts))
     serial = generate_serial()
@@ -108,3 +115,24 @@ def track():
     else:
         return render_template("tracking.html", data=result['data'])
 
+@app.route('/validate_address', methods=['POST'])
+def validate_address():
+    zip = str(request.form['zip'])
+    zip5 = zip[:5]
+    print("!!!", zip5)
+    address = {
+        'address1': request.form['address1'],
+        'address2': request.form['address2'],
+        'city': request.form['city'],
+        'state': request.form['state'],
+        'zip5': zip5,
+    }
+    if len(zip) >= 9:
+        address['zip4'] = zip[5:9]
+    if len(zip) >= 11:
+        address['dp'] = zip[9:11]
+    if len(request.form['firmname']) > 0:
+        address['firmname'] = request.form['firmname']
+    standardized_address = usps_api.get_USPS_standardized_address(address)
+    
+    return jsonify(standardized_address)

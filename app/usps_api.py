@@ -4,11 +4,14 @@ from . import config
 import redis
 import datetime
 import time
-import copy
 import sys
+import xmltodict
+import urllib.parse
+import html
 
 USPS_API_URL="https://services.usps.com"
 USPS_SERVICE_API_BASE="https://iv.usps.com/ivws_api/informedvisapi"
+USPS_ADDRESS_API_URL = 'https://secure.shippingapis.com/ShippingAPI.dll'
 
 headers = {'Content-type': 'application/json'}
 
@@ -72,6 +75,61 @@ def get_piece_tracking(imb: str):
     url = USPS_SERVICE_API_BASE + "/api/mt/get/piece/imb/" + imb
     response = requests.get(url, headers=get_authorization_header())
     return response.json()
+
+def get_USPS_standardized_address(address):
+    req = ""
+    if 'firmname' in address:
+        req += f"<FirmName>{address['firmname']}</FirmName>"
+    req += str(f"""
+        <Address1>{address['address1']}</Address1>
+        <Address2>{address['address2']}</Address2>
+        <City>{address['city']}</City>
+        <State>{address['state']}</State>
+        <Zip5>{address['zip5']}</Zip5>
+    """)
+    if 'zip4' in address:
+        req += f"<Zip4>{address['zip4']}</Zip4>"
+    else:
+        req += "<Zip4/>"
+    
+    address_xml = f"""
+    <Address ID="0">{req}</Address>
+    """
+
+    request_xml = f"""
+    <AddressValidateRequest USERID="{config.USPS_WEBAPI_USERNAME}">
+        <Revision>1</Revision>
+        {address_xml}
+    </AddressValidateRequest>
+    """
+    print(request_xml)
+
+    response = requests.get(USPS_ADDRESS_API_URL, params={'API': 'Verify', 'XML': request_xml})
+    response_dict = xmltodict.parse(response.content)
+    print(response_dict)
+
+    if 'Error' in response_dict:
+        return {'error': html.unescape(response_dict['Error']['Description'])}
+
+    if 'Error' in response_dict['AddressValidateResponse']['Address']:
+        return {'error': html.unescape(response_dict['AddressValidateResponse']['Address']['Error']['Description'])}
+
+    if 'Address1' not in response_dict['AddressValidateResponse']['Address']:
+        response_dict['AddressValidateResponse']['Address']['Address1'] = ''
+    if 'FirmName' not in response_dict['AddressValidateResponse']['Address']:
+        response_dict['AddressValidateResponse']['Address']['FirmName'] = ''
+    standardized_address = {
+        'firmname': response_dict['AddressValidateResponse']['Address']['FirmName'],
+        'address1': response_dict['AddressValidateResponse']['Address']['Address1'],
+        'address2': response_dict['AddressValidateResponse']['Address']['Address2'],
+        'city': response_dict['AddressValidateResponse']['Address']['City'],
+        'state': response_dict['AddressValidateResponse']['Address']['State'],
+        'zip5': response_dict['AddressValidateResponse']['Address']['Zip5'],
+        'zip4': response_dict['AddressValidateResponse']['Address']['Zip4'],
+        'dp': response_dict['AddressValidateResponse']['Address']['DeliveryPoint'],
+    }
+
+    return standardized_address
 
 
 if __name__ == "__main__":
