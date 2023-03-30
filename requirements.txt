@@ -13,3 +13,4 @@ redis==4.5.3
 requests==2.28.2
 urllib3==1.26.15
 Werkzeug==2.2.3
+xmltodict==0.13.0

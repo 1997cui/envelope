@@ -11,6 +11,8 @@ SRV_TYPE=40
 BARCODE_ID=0
 BSG_USERNAME= <Your USPS business account username>
 BSG_PASSWD= <Your USPS business account password>
+FLASK_SESSION_KEY= <Very secret flask key>
+USPS_WEBAPI_USERNAME= <Your USPS webtool username>
 ```
 Get a mailer ID here for free: [Guide](https://blog.ctyi.me/%E7%94%9F%E6%B4%BB/2021/06/03/USPS_IV_MTR.html)
 
