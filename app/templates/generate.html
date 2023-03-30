@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save your tracking information</title>
+</head>
+<body>
+    <h2>Tracking Information</h2>
+    <p>Serial: {{serial}}</p>
+    <p>Receipt ZIP: {{receipt_zip}}</p>
+    
+    <h3>Download envelope</h3>
+    <a href="{{ url_for('download', type='html') }}">Download as HTML</a>
+    <br>
+    <a href="{{ url_for('download', type='pdf') }}">Download as PDF</a>
+</body>
+</html>

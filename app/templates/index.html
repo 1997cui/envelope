@@ -14,6 +14,17 @@
 h2 {
   text-align: center;
 }
+
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 750px; /* Adjust this value to the desired width */
+}
+
+.flex-item {
+  flex: 1;
+  margin: 5px;
+}
 </style>
 </head>
 <body>
@@ -25,15 +36,30 @@ h2 {
 		<label for="sender_address">Sender Address:</label><br>
 		<textarea name="sender_address" rows="4" cols="50"></textarea><br>
 
-		<label for="recipient_address">Recipient Address:</label><br>
-		<textarea name="recipient_address" rows="4" cols="50"></textarea><br>
-
-		<label for="serial">Serial:</label><br>
-		<input name="serial" type="text" maxlength="6" pattern="\d*" title="Enter up to 6 digits"></input><br>
-		<label for="receipt_zip">Receipt zip (5, 9, or 11 digits):</label><br>
-		<input type="text" name="receipt_zip" maxlength="11" pattern="\d*" title="Enter 5, 9, or 11 digits"></input><br/>
-		<input type="submit" value="Generate PDF" name="pdfgenerate">
-		<input type="submit" value="Generate HTML" name="htmlgenerate">
+		<label>Recipient Address:</label><br>
+    <label for="recipient_name">Name:</label><br>
+    <div class="flex-container">
+      <input type="text" name="recipient_name" maxlength="100" class="flex-item"><br>
+    </div>
+      <label for="recipient_company">Company Name (optional):</label><br>
+    <div class="flex-container">
+      <input type="text" name="recipient_company" maxlength="100" class="flex-item"><br>
+    </div>
+    <label for="recipient_street">Street Address:</label><br>
+    <div class="flex-container">
+      <input type="text" name="recipient_street" maxlength="100" class="flex-item"><br>
+    </div>
+    <label for="recipient_address2">Address Line 2 (optional):</label><br>
+    <div class="flex-container">
+      <input type="text" name="recipient_address2" maxlength="100" class="flex-item"><br>
+    </div>
+    <label>City, State, and Zip:</label><br>
+    <div class="flex-container">
+        <input type="text" name="recipient_city" maxlength="100" style="width: 30%;" class="flex-item">
+        <input type="text" name="recipient_state" maxlength="2" minlength="2" style="width: 10%;" class="flex-item">
+        <input type="text" name="recipient_zip" maxlength="11" pattern="\d*" title="Enter 5, 9, or 11 digits" style="width: 20%;" class="flex-item"><br/>
+      </div>
+		<input type="submit" value="Generate" name="generate">
 	</form>
   </div>
 
@@ -48,6 +74,7 @@ h2 {
 	</form>
   </div>
 
-  <p><strong>Usage:</strong> Use the "Generate Envelope" section to create a PDF or HTML envelope and print it. After mailing the envelope, use the "Track Mail" section to track its status. For the serial number, use a unique 6-digit number that hasn't been used in the past 60 days.</p>
+  <p><strong>Usage:</strong> Use the "Generate Envelope" section to create a PDF or HTML envelope, <b>remember zip code and serial for tracking</b>. <br/>
+    After mailing the envelope, use the "Track Mail" section to track its status.</p>
 </body>
 </html>
