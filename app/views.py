@@ -70,34 +70,60 @@ def generate():
     session['recipient_zip'] = str(request.form['recipient_zip'])
     return render_template('generate.html', serial=serial, recipient_zip=recipient_zip)
 
-@app.route('/download/<type>')
-def download(type: str):
+@app.route('/download/<format_type>/<doc_type>')
+def download(format_type: str, doc_type: str):
     sender_address = session['sender_address']
     recipient_address = session['recipient_address']
     serial = session['serial']
     recipient_zip = session['recipient_zip']
-    html = render_template('envelopepdf.html', sender_address=sender_address, recipient_address=recipient_address, 
-                           human_readable_bar=generate_human_readable(recipient_zip, serial), 
-                           barcode=imb.encode(config.BARCODE_ID, config.SRV_TYPE, config.MAILER_ID, serial, str(recipient_zip)))
-    if type == 'html':
+    human_readable_bar = generate_human_readable(recipient_zip, serial)
+    row = request.args.get('row', default=1, type=int)
+    col = request.args.get('col', default=1, type=int)
+    barcode = imb.encode(config.BARCODE_ID, config.SRV_TYPE, config.MAILER_ID, serial, str(recipient_zip))
+
+    if format_type == 'envelope':
+        template_name = 'envelopepdf.html'
+
+    elif format_type == 'avery':
+        template_name = 'avery8163.html'
+
+    else:
+        return "Format type not valid"
+
+    html = render_template(template_name, sender_address=sender_address, recipient_address=recipient_address,
+                           human_readable_bar=human_readable_bar, barcode=barcode, row=row, col=col)
+
+    if doc_type == 'html':
         return html
-    elif type == 'pdf':
-        options={
-            'page-height': '4.125in',
-            'page-width': '9.5in',
-            'margin-bottom' : '0in',
-            'margin-top': '0in',
-            'margin-left': '0in',
-            'margin-right': '0in',
-            'disable-smart-shrinking': '',
-        }
+    elif doc_type == 'pdf':
+        if format_type == 'envelope':
+            options = {
+                'page-height': '4.125in',
+                'page-width': '9.5in',
+                'margin-bottom': '0in',
+                'margin-top': '0in',
+                'margin-left': '0in',
+                'margin-right': '0in',
+                'disable-smart-shrinking': '',
+            }
+        elif format_type == 'avery':
+            options = {
+                'page-height': '11in',
+                'page-width': '8.5in',
+                'margin-bottom': '0in',
+                'margin-top': '0in',
+                'margin-left': '0in',
+                'margin-right': '0in',
+                'disable-smart-shrinking': '',
+            }
+
         pdf = pdfkit.from_string(html, False, options=options)
         response = make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = 'attachment; filename=envelope.pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename={format_type}.pdf'
         return response
     else:
-        return "Type not valid"
+        return "Document type not valid"
 
 @app.route('/track', methods=['POST'])
 def track():

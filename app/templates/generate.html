@@ -12,8 +12,25 @@
     <p>Receipt ZIP: {{recipient_zip}}</p>
     
     <h3>Download envelope</h3>
-    <a href="{{ url_for('download', type='html') }}">Download as HTML</a>
+    <a href="{{ url_for('download', format_type='envelope', doc_type='html') }}">Download as HTML</a>
     <br>
-    <a href="{{ url_for('download', type='pdf') }}">Download as PDF</a>
+    <a href="{{ url_for('download', format_type='envelope', doc_type='pdf') }}">Download as PDF</a>
+
+    <h3>Download Avery 8163 sticker</h3>
+    <form action="{{ url_for('download', format_type='avery', doc_type='html') }}" method="get">
+        <label for="row">Row (1-5):</label>
+        <input type="number" id="row" name="row" min="1" max="5">
+        <label for="col">Column (1-2):</label>
+        <input type="number" id="col" name="col" min="1" max="2">
+        <button type="submit">Download as HTML</button>
+    </form>
+    <br>
+    <form action="{{ url_for('download', format_type='avery', doc_type='pdf') }}" method="get">
+        <label for="row">Row (1-5):</label>
+        <input type="number" id="row" name="row" min="1" max="5">
+        <label for="col">Column (1-2):</label>
+        <input type="number" id="col" name="col" min="1" max="2">
+        <button type="submit">Download as PDF</button>
+    </form>
 </body>
 </html>
