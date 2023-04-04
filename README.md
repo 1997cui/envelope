@@ -16,11 +16,17 @@ USPS_WEBAPI_USERNAME= <Your USPS webtool username>
 ```
 Get a mailer ID here for free: [Guide](https://blog.ctyi.me/%E7%94%9F%E6%B4%BB/2021/06/03/USPS_IV_MTR.html)
 
-### Modify the `Dockerfile`:
+### Modify the `Dockerfile` and `entrypoint.sh`:
+
+#### Docker file
 ```
-ENV SCRIPT_NAME=/envelope
 EXPOSE 8080
 ```
+#### `entrypoint.sh`
+```
+hypercorn -w 4 -b 0.0.0.0:8080 --root-path=/envelope/ app:app
+```
+
 means your service will run under:
 ```
 http://127.0.0.1:8080/envelope/

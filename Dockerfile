@@ -19,11 +19,6 @@ RUN apt-get install -y ./wkhtmltox_0.12.6.1-2.bullseye_amd64.deb
 # copy source code
 COPY . .
 
-# set environment variables
-ENV FLASK_APP=app.py
-ENV FLASK_RUN_HOST=0.0.0.0
-ENV SCRIPT_NAME=/envelope
-
 EXPOSE 8080
 
 CMD ["./entrypoint.sh"]
