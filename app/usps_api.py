@@ -102,11 +102,9 @@ def get_USPS_standardized_address(address):
         {address_xml}
     </AddressValidateRequest>
     """
-    print(request_xml)
 
     response = requests.get(USPS_ADDRESS_API_URL, params={'API': 'Verify', 'XML': request_xml})
     response_dict = xmltodict.parse(response.content)
-    print(response_dict)
 
     if 'Error' in response_dict:
         return {'error': html.unescape(response_dict['Error']['Description'])}
