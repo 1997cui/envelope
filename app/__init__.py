@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from flask import Flask
+from quart import Quart
 from . import config
-app = Flask(__name__)
+app = Quart(__name__)
 app.secret_key = config.FLASK_SESSION_KEY
 
 from . import views

@@ -1,23 +1,25 @@
-import requests
 import json
 from . import config
-import redis
+import aioredis
 import datetime
 import time
 import sys
 import xmltodict
-import urllib.parse
 import html
+import httpx
+import asyncio
+from urllib.parse import urljoin
 
 USPS_API_URL="https://services.usps.com"
-USPS_SERVICE_API_BASE="https://iv.usps.com/ivws_api/informedvisapi"
+USPS_SERVICE_API_BASE="https://iv.usps.com/ivws_api/informedvisapi/"
 USPS_ADDRESS_API_URL = 'https://secure.shippingapis.com/ShippingAPI.dll'
 
 headers = {'Content-type': 'application/json'}
 
-redis_client = redis.Redis(host='localhost', port=6379, db=0)
+redis_client = aioredis.Redis(host='localhost', port=6379, db=0)
+httpx_client = httpx.AsyncClient()
 
-def generate_token_usps(username: str,
+async def generate_token_usps(username: str,
                    passwd: str):
     data = {
     "username": username, 
@@ -26,57 +28,62 @@ def generate_token_usps(username: str,
     "response_type": "token", 
     "scope": "user.info.ereg,iv1.apis", 
     "client_id": "687b8a36-db61-42f7-83f7-11c79bf7785e"}
-    response = requests.post(USPS_API_URL + "/oauth/authenticate", data=json.dumps(data), headers=headers)
+    response = await httpx_client.post(urljoin(USPS_API_URL, "oauth/authenticate"), data=json.dumps(data), headers=headers)
     return response.json()
 
-def refresh_token_usps(refresh_token: str):
+async def refresh_token_usps(refresh_token: str):
     data = {
         "refresh_token": refresh_token,
         "grant_type": "authorization",
         "response_type": "token",
         "scope": "user.info.ereg,iv1.apis"
     }
-    response = requests.post(USPS_API_URL + "/oauth/token", data=json.dumps(data), headers=headers)
+    response = await httpx_client.post(urljoin(USPS_API_URL, "oauth/token"), data=json.dumps(data), headers=headers)
     return response.json()
 
-def token_maintain():
-    access_token = redis_client.get("usps_access_token")
-    next_refresh_time = redis_client.get("usps_token_nextrefresh")
-    refresh_token = redis_client.get("usps_refresh_token")
+async def token_maintain():
+    access_token = await redis_client.get("usps_access_token")
+    next_refresh_time = await redis_client.get("usps_token_nextrefresh")
+    refresh_token = await redis_client.get("usps_refresh_token")
     now = datetime.datetime.now()
     if next_refresh_time is not None:
         next_refresh_time = datetime.datetime.fromtimestamp(float(next_refresh_time.decode('utf-8')))
     if next_refresh_time is None or now > next_refresh_time:
-        resp = generate_token_usps(config.BSG_USERNAME, config.BSG_PASSWD)
+        resp = await generate_token_usps(config.BSG_USERNAME, config.BSG_PASSWD)
         token_type = resp['token_type']
         access_token = resp['access_token']
         refresh_token = resp['refresh_token']
         expires_in = int(resp['expires_in'])
         refresh_token = resp['refresh_token']
-        redis_client.set("usps_access_token", access_token)
-        redis_client.set("usps_token_nextrefresh", time.time() + expires_in/2.0)
-        redis_client.set("usps_refresh_token", refresh_token)
-        redis_client.set("usps_token_type", token_type)
+        await redis_client.set("usps_access_token", access_token)
+        await redis_client.set("usps_token_nextrefresh", time.time() + expires_in/2.0)
+        await redis_client.set("usps_refresh_token", refresh_token)
+        await redis_client.set("usps_token_type", token_type)
     else:
         refresh_token = refresh_token.decode('utf-8')
-        resp = refresh_token_usps(refresh_token)
+        resp = await refresh_token_usps(refresh_token)
         expires_in = int(resp['expires_in'])
-        redis_client.set("usps_token_nextrefresh", time.time() + expires_in/2.0)
+        await redis_client.set("usps_token_nextrefresh", time.time() + expires_in/2.0)
 
-def get_authorization_header():
-    token_maintain()
-    access_token = redis_client.get("usps_access_token").decode('utf-8')
-    token_type =  redis_client.get("usps_token_type").decode('utf-8')
+async def get_authorization_header():
+    next_refresh_time = await redis_client.get("usps_token_nextrefresh")
+    if next_refresh_time is not None:
+        next_refresh_time = datetime.datetime.fromtimestamp(float(next_refresh_time.decode('utf-8')))
+    now = datetime.datetime.now()
+    if next_refresh_time is None or now > next_refresh_time:
+        await token_maintain()
+    access_token = (await redis_client.get("usps_access_token")).decode('utf-8')
+    token_type =  (await redis_client.get("usps_token_type")).decode('utf-8')
     headers_local = dict()
     headers_local["Authorization"] = token_type + " " + access_token
     return headers_local
 
-def get_piece_tracking(imb: str):
-    url = USPS_SERVICE_API_BASE + "/api/mt/get/piece/imb/" + imb
-    response = requests.get(url, headers=get_authorization_header())
+async def get_piece_tracking(imb: str):
+    url = urljoin(USPS_SERVICE_API_BASE, "api/mt/get/piece/imb/" + imb)
+    response = await httpx_client.get(url, headers=await get_authorization_header())
     return response.json()
 
-def get_USPS_standardized_address(address):
+async def get_USPS_standardized_address(address):
     req = ""
     if 'firmname' in address:
         req += f"<FirmName>{address['firmname']}</FirmName>"
@@ -103,7 +110,7 @@ def get_USPS_standardized_address(address):
     </AddressValidateRequest>
     """
 
-    response = requests.get(USPS_ADDRESS_API_URL, params={'API': 'Verify', 'XML': request_xml})
+    response = await httpx_client.get(USPS_ADDRESS_API_URL, params={'API': 'Verify', 'XML': request_xml})
     response_dict = xmltodict.parse(response.content)
 
     if 'Error' in response_dict:
@@ -131,4 +138,5 @@ def get_USPS_standardized_address(address):
 
 
 if __name__ == "__main__":
-    print(get_piece_tracking(sys.argv[1]))
+    loop = asyncio.get_event_loop()
+    print(loop.run_until_complete(get_piece_tracking(sys.argv[1])))
