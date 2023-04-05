@@ -1,41 +1,22 @@
-# A small website to generate USPS Envelopes with Trackable Barcode
+# Envelope
+---
+A lightweight web service to generate USPS first class mail envelope with a traceable barcode.
 ## Features
 1. Generate a ready-to-print envelope pdf and html
-2. The envelope has a traceable barcode
-3. Show status of your first class mail without certify!
+2. Support both #10 Envelope and 4in*2in label
+3. The envelope has a traceable barcode
+4. Show status of your first class mail without certify!
 ## Install
-### Create a `config.py` containing the following content in the root folder:
-```
-MAILER_ID = <Your mailer id>
-SRV_TYPE=40
-BARCODE_ID=0
-BSG_USERNAME= <Your USPS business account username>
-BSG_PASSWD= <Your USPS business account password>
-FLASK_SESSION_KEY= <Very secret flask key>
-USPS_WEBAPI_USERNAME= <Your USPS webtool username>
-```
-Get a mailer ID here for free: [Guide](https://blog.ctyi.me/%E7%94%9F%E6%B4%BB/2021/06/03/USPS_IV_MTR.html)
+### Generate config
+ - Move `app/config.py.example` to `app/config.py`
+ - config your USPS Web Tools API username, Business Gateway username and Password [Guide](https://blog.ctyi.me/%E7%94%9F%E6%B4%BB/2021/06/03/USPS_IV_MTR.html)
 
-### Modify the `Dockerfile` and `entrypoint.sh`:
-
-#### Docker file
-```
-EXPOSE 8080
-```
-#### `entrypoint.sh`
-```
-hypercorn -w 4 -b 0.0.0.0:8080 --root-path=/envelope/ app:app
-```
-
-means your service will run under:
-```
-http://127.0.0.1:8080/envelope/
-```
-### Build the docker image:
-```
-docker build -t envelope_image .
-```
-### Run it:
-```
-docker run -p 8083:8080 --name envelope_app -d --restart=always envelope_image
-```
+ - config a Flask session key
+ - Config your redis server address
+### Docker
+ - Modify the docker file to meet your need
+   - `CMD ["hypercorn", "-w", "4", "-b", "0.0.0.0:8080", "--root-path=/envelope/", "app:app"]`
+     - Define the path and the port
+ - `docker-compose up -d`
+### Enjoy
+ - Open `http://localhost:8080/envelope/` in your browser
