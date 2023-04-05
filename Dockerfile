@@ -9,7 +9,7 @@ COPY requirements.txt .
 
 # install dependencies
 RUN apt-get update 
-RUN apt-get install -y apt-utils redis-server
+RUN apt-get install -y apt-utils
 RUN apt-get install -y wget fonts-liberation fonts-wqy-zenhei fonts-arphic-uming
 
 RUN pip install --no-cache-dir -r requirements.txt
@@ -21,4 +21,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["./entrypoint.sh"]
+CMD ["hypercorn", "-w", "4", "-b", "0.0.0.0:8080", "--root-path=/envelope/", "app:app"]

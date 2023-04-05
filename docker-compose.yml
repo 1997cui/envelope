@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8084:8080"
+    depends_on:
+      - redis
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    restart: always
+
+  redis:
+    image: "redis:latest"
+    restart: always

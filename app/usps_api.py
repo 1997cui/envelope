@@ -16,8 +16,8 @@ USPS_ADDRESS_API_URL = 'https://secure.shippingapis.com/ShippingAPI.dll'
 
 headers = {'Content-type': 'application/json'}
 
-redis_client = aioredis.Redis(host='localhost', port=6379, db=0)
-httpx_client = httpx.AsyncClient()
+redis_client = aioredis.Redis(host=config.REDIS_HOST, port=6379, db=0)
+httpx_client = httpx.AsyncClient(timeout=15)
 
 async def generate_token_usps(username: str,
                    passwd: str):

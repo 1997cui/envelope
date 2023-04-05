@@ -1,56 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tracking Information</title>
+    <script>
+        // Fetch receipt_zip and serial from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const receiptZip = urlParams.get("receipt_zip");
+        const serial = urlParams.get("serial");
+
+        // WebSocket connection
+        let ws_protocol = location.protocol === "https:" ? "wss" : "ws";
+        let ws_path = "{{ url_for('track_ws') }}";
+        let ws_rel_path = ws_path.replace(/^(ws:\/\/|wss:\/\/)[^/]+/, "");
+        let ws = new WebSocket(`${ws_protocol}://${location.host}${ws_rel_path}`);
+        ws.onmessage = (event) => {
+            // Hide loading indicator
+            document.getElementById("loading").style.display = "none";
+
+            let result = JSON.parse(event.data);
+            if ("error" in result) {
+                displayError(result["error"], result["error_description"], result["details"]);
+            } else if ("message" in result && result["message"]) {
+                displayMessage(result["message"])
+            } else {
+                displayData(result["data"]);
+            }
+        };
+
+        ws.onopen = () => {
+            ws.send(JSON.stringify({ receipt_zip: receiptZip, serial: serial }));
+        };
+
+        function displayMessage(message) {
+            let resultContainer = document.getElementById("result_container");
+            let content = `<p>${message}</p>`;
+            resultContainer.innerHTML = content;
+        }
+
+        function displayError(error, error_description, details) {
+            let resultContainer = document.getElementById("result_container");
+            let content = `<p>Error: ${error}</p>
+                   <p>Description: ${error_description}</p>
+                   <p>Details: ${details}</p>`;
+            resultContainer.innerHTML = content;
+        }
+
+        function displayData(data) {
+            let resultContainer = document.getElementById("result_container");
+            let content = `
+                <p>Expected Delivery Date: ${data.expected_delivery_date}</p>
+                <p>Mail Class: ${data.mail_class}</p>
+                <p>Mail Shape: ${data.mail_shape}</p>
+                <p>Start The Clock Date: ${data.start_the_clock_date}</p>
+                <p>Start The Clock Facility Name: ${data.start_the_clock_facility_name}</p>
+                <p>Start The Clock Facility City: ${data.start_the_clock_facility_city}</p>
+                <p>Start The Clock Facility State: ${data.start_the_clock_facility_state}</p>
+                <p>Start The Clock Facility ZIP: ${data.start_the_clock_facility_zip}</p>
+                <table border="1">
+                    <tr>
+                        <th>Date/Time</th>
+                        <th>Event</th>
+                        <th>Handling Event Type</th>
+                        <th>Mail Phase</th>
+                        <th>Machine Name</th>
+                        <th>Scanner Type</th>
+                        <th>Facility Name</th>
+                        <th>Locale Key</th>
+                        <th>City</th>
+                        <th>State</th>
+                        <th>ZIP</th>
+                    </tr>`;
+
+            data.scans.forEach(scan => {
+                content += `
+                    <tr>
+                        <td>${scan.scan_date_time}</td>
+                        <td>${scan.scan_event_code}</td>
+                        <td>${scan.handling_event_type || 'N/A'}</td>
+                        <td>${scan.mail_phase || 'N/A'}</td>
+                        <td>${scan.machine_name || 'N/A'}</td>
+                        <td>${scan.scanner_type || 'N/A'}</td>
+                        <td>${scan.scan_facility_name || 'N/A'}</td>
+                        <td>${scan.scan_facility_locale_key || 'N/A'}</td>
+                        <td>${scan.scan_facility_city || 'N/A'}</td>
+                        <td>${scan.scan_facility_state || 'N/A'}</td>
+                        <td>${scan.scan_facility_zip || 'N/A'}</td>
+                    </tr>`;
+            });
+
+            content += `</table>`;
+            resultContainer.innerHTML = content;
+        }
+    </script>
 </head>
+
 <body>
     <h1>Tracking Information</h1>
-    {% if error_message %}
-        <p>{{ error_message }}</p>
-    {% elif message %}
-        <p>{{ message }}</p>
-    {% else %}
-        <p>Expected Delivery Date: {{ data.expected_delivery_date }}</p>
-        <p>Mail Class: {{ data.mail_class }}</p>
-        <p>Mail Shape: {{ data.mail_shape }}</p>
-        <p>Start The Clock Date: {{ data.start_the_clock_date }}</p>
-        <p>Start The Clock Facility Name: {{ data.start_the_clock_facility_name }}</p>
-        <p>Start The Clock Facility City: {{ data.start_the_clock_facility_city }}</p>
-        <p>Start The Clock Facility State: {{ data.start_the_clock_facility_state }}</p>
-        <p>Start The Clock Facility ZIP: {{ data.start_the_clock_facility_zip }}</p>
-        <table border="1">
-            <tr>
-                <th>Date/Time</th>
-                <th>Event</th>
-                <th>Handling Event Type</th>
-                <th>Mail Phase</th>
-                <th>Machine Name</th>
-                <th>Scanner Type</th>
-                <th>Facility Name</th>
-                <th>Locale Key</th>
-                <th>City</th>
-                <th>State</th>
-                <th>ZIP</th>
-            </tr>
-            {% for scan in data.scans %}
-            <tr>
-                <td>{{ scan.scan_date_time }}</td>
-                <td>{{ scan.scan_event_code }}</td>
-                <td>{{ scan.handling_event_type | default('N/A') }}</td>
-                <td>{{ scan.mail_phase | default('N/A') }}</td>
-                <td>{{ scan.machine_name | default('N/A') }}</td>
-                <td>{{ scan.scanner_type | default('N/A') }}</td>
-                <td>{{ scan.scan_facility_name | default('N/A') }}</td>
-                <td>{{ scan.scan_facility_locale_key | default('N/A') }}</td>
-                <td>{{ scan.scan_facility_city | default('N/A') }}</td>
-                <td>{{ scan.scan_facility_state | default('N/A') }}</td>
-                <td>{{ scan.scan_facility_zip | default('N/A') }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% endif %}
-    <br>
+    <div id="loading">Loading...</div>
+    <div id="result_container">
+        <!-- Results will be displayed here -->
+    </div>
 </body>
+
 </html>

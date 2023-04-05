@@ -1,4 +1,4 @@
-from quart import render_template, request, make_response, jsonify, session
+from quart import render_template, request, make_response, jsonify, session, websocket
 from . import imb
 from . import config
 import pdfkit
@@ -9,7 +9,7 @@ import aioredis
 
 ROLLING_WINDOW = 50
 
-redis_client = aioredis.Redis(host='localhost', port=6379, db=0)
+redis_client = aioredis.Redis(host=config.REDIS_HOST, port=6379, db=0)
 async def generate_serial():
     today = datetime.datetime.today()
     num_days = (today - datetime.datetime(1970,1,1)).days
@@ -126,23 +126,24 @@ async def download(format_type: str, doc_type: str):
     else:
         return "Document type not valid"
 
-@app.route('/track', methods=['POST'])
-async def track():
-    try:
-        receipt_zip = int((await request.form)['receipt_zip'])
-        receipt_zip = str((await request.form)['receipt_zip'])
-        serial = int((await request.form)['serial'])
-    except:
-        response = "Serial number or receipt zip is not number!"
-        return response
-    result = await query_usps_tracking(receipt_zip, serial)
-    if 'error' in result:
-        message = "{}: {}. Details: {}".format(result['error'], result['error_description'], result['details'])
-        return await render_template("tracking.html", error_message=message)
-    elif 'message' in result and result['message']:
-        return await render_template("tracking.html", error_message=result['message'])
-    else:
-        return await render_template("tracking.html", data=result['data'])
+@app.route('/tracking', methods=['GET'])
+async def tracking():
+    return await render_template("tracking.html")
+    
+@app.websocket('/track-ws')
+async def track_ws():
+    while True:
+        try:
+            req = await websocket.receive_json()
+            receipt_zip = req['receipt_zip']
+            serial = req['serial']
+            serial = int(serial)
+            imb = f"{config.BARCODE_ID:02d}" + f"{config.SRV_TYPE:03d}" + str(config.MAILER_ID) + f"{serial:06d}" + str(receipt_zip)
+        except:
+            await websocket.send('Invalid input received on WebSocket.')
+            continue
+        result = await usps_api.get_piece_tracking(imb)
+        await websocket.send_json(result)
 
 @app.route('/validate_address', methods=['POST'])
 async def validate_address():

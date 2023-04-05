@@ -2,7 +2,6 @@
 <html>
 <head>
   <title>Envelope Generator by Tianyi</title>
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 <style>
 .container {
   border: 2px solid #000;
@@ -106,13 +105,23 @@ h2 {
 
   <div class="container">
     <h2>Track Mail</h2>
-    <form method="POST" action="{{ url_for('track') }}" target="_blank">
-		<label for="serial">Serial (At most 6 digits):</label><br>
-		<input name="serial" type="text" maxlength="6" pattern="\d*" title="Enter up to 6 digits"></input><br>
-		<label for="receipt_zip">Receipt zip (5, 9, or 11 digits):</label><br>
-		<input type="text" name="receipt_zip" maxlength="11" pattern="\d*" title="Enter 5, 9, or 11 digits"></input><br/>
-		<input type="submit" value="Track">
-	</form>
+    <div class="flex-container">
+    <form onsubmit="submitForm(event);">
+      <label for="serial">Serial: </label>
+      <input type="text" id="serial" required class="flex-item" maxlength="6" pattern="\d*" title="Max 6 digits> <br>
+      <label for="receiptZip">Receipt Zip: </label>
+      <input type="text" id="receiptZip" required class="flex-item"  maxlength="11" pattern="\d*" title="Enter 5, 9, or 11 digits"> <br>
+      <input type="submit" value="Track">
+  </form>
+</div>
+  <script>
+      function submitForm(event) {
+          event.preventDefault();
+          let receiptZip = document.getElementById("receiptZip").value;
+          let serial = document.getElementById("serial").value;
+          window.location.href = `{{ url_for('tracking') }}?receipt_zip=${encodeURIComponent(receiptZip)}&serial=${encodeURIComponent(serial)}`;
+      }
+  </script>
   </div>
 
   <p><strong>Usage:</strong> Use the "Generate Envelope" section to create a PDF or HTML envelope, optionally, use validate address button to correct the address, <b>remember zip code and serial for tracking</b>. <br/>
