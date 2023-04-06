@@ -6,13 +6,16 @@ from . import usps_api
 from . import app
 import datetime
 import aioredis
+import asyncio
 
 ROLLING_WINDOW = 50
 
 redis_client = aioredis.Redis(host=config.REDIS_HOST, port=6379, db=0)
+
+
 async def generate_serial():
     today = datetime.datetime.today()
-    num_days = (today - datetime.datetime(1970,1,1)).days
+    num_days = (today - datetime.datetime(1970, 1, 1)).days
     base = num_days % ROLLING_WINDOW
     day_key = "serial_" + str(base)
     perday_counter = await redis_client.incr(day_key)
@@ -21,8 +24,10 @@ async def generate_serial():
     await redis_client.expire(day_key, 48 * 60 * 60)
     return base * 10000 + int(perday_counter)
 
+
 def generate_human_readable(receipt_zip: str, serial: int):
     return "{0:02d}-{1:03d}-{2:d}-{3:06d}-{4:s}".format(config.BARCODE_ID, config.SRV_TYPE, config.MAILER_ID, serial, receipt_zip)
+
 
 def query_usps_tracking(receipt_zip: str, serial: int):
     imb = generate_human_readable(receipt_zip, serial)
@@ -30,9 +35,11 @@ def query_usps_tracking(receipt_zip: str, serial: int):
     app.add_background_task(usps_api.token_maintain)
     return usps_api.get_piece_tracking(imb)
 
+
 @app.route('/')
 async def index():
     return await render_template('index.html')
+
 
 @app.route('/generate', methods=['POST'])
 async def generate():
@@ -71,6 +78,7 @@ async def generate():
     session['recipient_zip'] = str((await request.form)['recipient_zip'])
     return await render_template('generate.html', serial=serial, recipient_zip=recipient_zip)
 
+
 @app.route('/download/<format_type>/<doc_type>')
 async def download(format_type: str, doc_type: str):
     sender_address = session['sender_address']
@@ -80,7 +88,8 @@ async def download(format_type: str, doc_type: str):
     human_readable_bar = generate_human_readable(recipient_zip, serial)
     row = request.args.get('row', default=1, type=int)
     col = request.args.get('col', default=1, type=int)
-    barcode = imb.encode(config.BARCODE_ID, config.SRV_TYPE, config.MAILER_ID, serial, str(recipient_zip))
+    barcode = imb.encode(config.BARCODE_ID, config.SRV_TYPE,
+                         config.MAILER_ID, serial, str(recipient_zip))
 
     if format_type == 'envelope':
         template_name = 'envelopepdf.html'
@@ -92,7 +101,7 @@ async def download(format_type: str, doc_type: str):
         return "Format type not valid"
 
     html = await render_template(template_name, sender_address=sender_address, recipient_address=recipient_address,
-                           human_readable_bar=human_readable_bar, barcode=barcode, row=row, col=col)
+                                 human_readable_bar=human_readable_bar, barcode=barcode, row=row, col=col)
 
     if doc_type == 'html':
         return html
@@ -126,24 +135,30 @@ async def download(format_type: str, doc_type: str):
     else:
         return "Document type not valid"
 
+
 @app.route('/tracking', methods=['GET'])
 async def tracking():
     return await render_template("tracking.html")
-    
+
+
 @app.websocket('/track-ws')
 async def track_ws():
     while True:
         try:
-            req = await websocket.receive_json()
-            receipt_zip = req['receipt_zip']
-            serial = req['serial']
-            serial = int(serial)
-            imb = f"{config.BARCODE_ID:02d}" + f"{config.SRV_TYPE:03d}" + str(config.MAILER_ID) + f"{serial:06d}" + str(receipt_zip)
-        except:
-            await websocket.send('Invalid input received on WebSocket.')
-            continue
-        result = await usps_api.get_piece_tracking(imb)
-        await websocket.send_json(result)
+            try:
+                req = await websocket.receive_json()
+                receipt_zip = req['receipt_zip']
+                serial = req['serial']
+                serial = int(serial)
+                imb = f"{config.BARCODE_ID:02d}" + f"{config.SRV_TYPE:03d}" + \
+                    str(config.MAILER_ID) + f"{serial:06d}" + str(receipt_zip)
+            except ValueError:
+                await websocket.send('Invalid input received on WebSocket.')
+                continue
+            result = await usps_api.get_piece_tracking(imb)
+            await websocket.send_json(result)
+        except asyncio.CancelledError:
+            break
 
 @app.route('/validate_address', methods=['POST'])
 async def validate_address():
@@ -163,5 +178,5 @@ async def validate_address():
     if len((await request.form)['firmname']) > 0:
         address['firmname'] = (await request.form)['firmname']
     standardized_address = await usps_api.get_USPS_standardized_address(address)
-    
+
     return jsonify(standardized_address)
