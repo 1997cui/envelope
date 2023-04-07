@@ -1,4 +1,3 @@
-import json
 from . import config
 import aioredis
 import datetime
@@ -28,7 +27,7 @@ async def generate_token_usps(username: str,
     "response_type": "token", 
     "scope": "user.info.ereg,iv1.apis", 
     "client_id": "687b8a36-db61-42f7-83f7-11c79bf7785e"}
-    response = await httpx_client.post(urljoin(USPS_API_URL, "oauth/authenticate"), data=json.dumps(data), headers=headers)
+    response = await httpx_client.post(urljoin(USPS_API_URL, "oauth/authenticate"), json=data, headers=headers)
     return response.json()
 
 async def refresh_token_usps(refresh_token: str):
@@ -38,7 +37,7 @@ async def refresh_token_usps(refresh_token: str):
         "response_type": "token",
         "scope": "user.info.ereg,iv1.apis"
     }
-    response = await httpx_client.post(urljoin(USPS_API_URL, "oauth/token"), data=json.dumps(data), headers=headers)
+    response = await httpx_client.post(urljoin(USPS_API_URL, "oauth/token"), json=data, headers=headers)
     return response.json()
 
 async def token_maintain():
