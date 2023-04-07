@@ -15,6 +15,7 @@ ROLLING_WINDOW = 50
 
 redis_client = aioredis.Redis(host=config.REDIS_HOST, port=6379, db=0)
 
+
 @app.before_serving
 async def server_init():
     async def token_maintain():
@@ -22,6 +23,7 @@ async def server_init():
             await usps_api.token_maintain()
             await asyncio.sleep(60 * 5)
     app.add_background_task(token_maintain)
+
 
 @app.after_serving
 async def server_shutdown():
@@ -170,8 +172,20 @@ async def track_ws():
         except ValueError:
             await websocket.send('Invalid input received on WebSocket.')
             continue
-        result = await usps_api.get_piece_tracking(barcode)
-        await websocket.send_json(result)
+        tracking_data = await usps_api.get_piece_tracking(barcode)
+        try:
+            if tracking_data.get('data') and 'imb' in tracking_data['data']:
+                imb_data_key = f'imb:{tracking_data["data"]["imb"]}'
+                stored_scans_data = await redis_client.lrange(imb_data_key, 0, -1)
+                if 'scans' not in tracking_data['data']:
+                    tracking_data['data']['scans'] = []
+                for stored_scan in stored_scans_data:
+                    tracking_data['data']['scans'] = [json.loads(
+                        stored_scan)] + tracking_data['data']['scans']
+        except (KeyError, ValueError):
+            pass
+        await websocket.send_json(tracking_data)
+
 
 @app.route('/validate_address', methods=['POST'])
 async def validate_address():
