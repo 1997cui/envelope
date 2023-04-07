@@ -66,7 +66,7 @@ h2 {
 </head>
 <body>
   <h1>Envelope Generator</h1>
-
+  <a class="github-button" href="https://github.com/1997cui/envelope" data-size="large" data-show-count="true" aria-label="Star 1997cui/envelope on GitHub">Star</a>
   <div class="container">
     <h2>Generate Envelope</h2>
     <form method="POST" action="{{ url_for('generate') }}" target="_blank">
@@ -91,7 +91,7 @@ h2 {
     <div class="flex-container">
       <input type="text" name="recipient_address2" maxlength="100" class="flex-item"><br>
     </div>
-    <label>City, State, and Zip:</label><br>
+    <label>City, State, and Zip (5, 9 or 11 digits):</label><br>
     <div class="flex-container">
         <input type="text" name="recipient_city" maxlength="100" style="width: 30%;" class="flex-item">
         <input type="text" name="recipient_state" maxlength="2" minlength="2" style="width: 10%;" class="flex-item">
@@ -107,9 +107,9 @@ h2 {
     <h2>Track Mail</h2>
     <div class="flex-container">
     <form onsubmit="submitForm(event);">
-      <label for="serial">Serial: </label>
-      <input type="text" id="serial" required class="flex-item" maxlength="6" pattern="\d*" title="Max 6 digits> <br>
-      <label for="receiptZip">Receipt Zip: </label>
+      <label for="serial">Serial: </label><br>
+      <input type="text" id="serial" required class="flex-item" maxlength="6" pattern="\d*" title="Max 6 digits"/><br>
+      <label for="receiptZip"> Receipt Zip (Exactly same as the above zip field): </label><br>
       <input type="text" id="receiptZip" required class="flex-item"  maxlength="11" pattern="\d*" title="Enter 5, 9, or 11 digits"> <br>
       <input type="submit" value="Track">
   </form>
@@ -126,5 +126,6 @@ h2 {
 
   <p><strong>Usage:</strong> Use the "Generate Envelope" section to create a PDF or HTML envelope, optionally, use validate address button to correct the address, <b>remember zip code and serial for tracking</b>. <br/>
     After mailing the envelope, use the "Track Mail" section to track its status.</p>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
 </html>
