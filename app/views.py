@@ -1,4 +1,5 @@
 import datetime
+import json
 import aioredis
 import asyncio
 import pdfkit
@@ -182,3 +183,38 @@ async def validate_address():
     standardized_address = await usps_api.get_USPS_standardized_address(address)
 
     return jsonify(standardized_address)
+
+
+@app.route('/usps_feed', methods=['POST'])
+async def usps_feed():
+    data = await request.get_json()
+
+    if data is None or 'events' not in data:
+        return "Invalid data format."
+
+    for event in data['events']:
+        if 'imb' not in event:
+            continue
+        handle_event_type = event.get('handlingEventType', None)
+        if handle_event_type is None or handle_event_type != 'L':
+            continue
+        barcode = event['imb']
+        reformed_event = {
+            'scan_date_time': event.get('scanDatetime', None),
+            'scan_event_code': event.get('scanEventCode', None),
+            'handling_event_type': event.get('handlingEventType', None),
+            'mail_phase': event.get('mailPhase', None),
+            'machine_name': event.get('machineName', None),
+            'scanner_type': event.get('scannerType', None),
+            'scan_facility_name': event.get('scanFacilityName', None),
+            'scan_facility_locale_key': event.get('scanLocaleKey', None),
+            'scan_facility_city': event.get('scanFacilityCity', None),
+            'scan_facility_state': event.get('scanFacilityState', None),
+            'scan_facility_zip': event.get('scanFacilityZip', None)
+        }
+
+        redis_key = f'imb:{barcode}'
+        await redis_client.rpush(redis_key, json.dumps(reformed_event))
+        ttl_seconds = 60 * 24 * 60 * 60
+        await redis_client.expire(redis_key, ttl_seconds)
+    return "Data stored in Redis."
