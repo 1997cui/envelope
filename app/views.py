@@ -30,10 +30,10 @@ def generate_human_readable(receipt_zip: str, serial: int):
 
 
 def query_usps_tracking(receipt_zip: str, serial: int):
-    imb = generate_human_readable(receipt_zip, serial)
-    imb = imb.replace('-', '')
+    barcode = generate_human_readable(receipt_zip, serial)
+    barcode = barcode.replace('-', '')
     app.add_background_task(usps_api.token_maintain)
-    return usps_api.get_piece_tracking(imb)
+    return usps_api.get_piece_tracking(barcode)
 
 
 @app.route('/')
@@ -53,22 +53,22 @@ async def generate():
     try:
         recipient_zip = int((await request.form)['recipient_zip'])
         recipient_zip = str((await request.form)['recipient_zip'])
-    except:
+    except ValueError:
         response = "Recipient zip is not number!"
         return response
     if len(str((await request.form)['recipient_zip'])) < 5:
         response = "Invalid recipient zip"
         return response
-    zip = zip5 = str((await request.form)['recipient_zip'])[:5]
+    zip_full = zip5 = str((await request.form)['recipient_zip'])[:5]
     if len(str((await request.form)['recipient_zip'])) > 5:
         zip4 = str((await request.form)['recipient_zip'])[5:9]
-        zip = f"{zip5}-{zip4}"
+        zip_full = f"{zip5}-{zip4}"
     recipient_address_parts = [
         recipient_name,
         recipient_company,
         recipient_street,
         recipient_address2,
-        f"{recipient_city}, {recipient_state}, {zip}"
+        f"{recipient_city}, {recipient_state}, {zip_full}"
     ]
     recipient_address = '\n'.join(filter(bool, recipient_address_parts))
     serial = await generate_serial()
@@ -150,20 +150,20 @@ async def track_ws():
                 receipt_zip = req['receipt_zip']
                 serial = req['serial']
                 serial = int(serial)
-                imb = f"{config.BARCODE_ID:02d}" + f"{config.SRV_TYPE:03d}" + \
+                barcode = f"{config.BARCODE_ID:02d}" + f"{config.SRV_TYPE:03d}" + \
                     str(config.MAILER_ID) + f"{serial:06d}" + str(receipt_zip)
             except ValueError:
                 await websocket.send('Invalid input received on WebSocket.')
                 continue
-            result = await usps_api.get_piece_tracking(imb)
+            result = await usps_api.get_piece_tracking(barcode)
             await websocket.send_json(result)
         except asyncio.CancelledError:
             break
 
 @app.route('/validate_address', methods=['POST'])
 async def validate_address():
-    zip = str((await request.form)['zip'])
-    zip5 = zip[:5]
+    zip_full = str((await request.form)['zip'])
+    zip5 = zip_full[:5]
     address = {
         'address1': (await request.form)['address1'],
         'address2': (await request.form)['address2'],
@@ -171,10 +171,10 @@ async def validate_address():
         'state': (await request.form)['state'],
         'zip5': zip5,
     }
-    if len(zip) >= 9:
-        address['zip4'] = zip[5:9]
-    if len(zip) >= 11:
-        address['dp'] = zip[9:11]
+    if len(zip_full) >= 9:
+        address['zip4'] = zip_full[5:9]
+    if len(zip_full) >= 11:
+        address['dp'] = zip_full[9:11]
     if len((await request.form)['firmname']) > 0:
         address['firmname'] = (await request.form)['firmname']
     standardized_address = await usps_api.get_USPS_standardized_address(address)
