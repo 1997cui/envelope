@@ -15,6 +15,19 @@ ROLLING_WINDOW = 50
 
 redis_client = aioredis.Redis(host=config.REDIS_HOST, port=6379, db=0)
 
+@app.before_serving
+async def server_init():
+    async def token_maintain():
+        while True:
+            await usps_api.token_maintain()
+            await asyncio.sleep(60 * 5)
+    app.add_background_task(token_maintain)
+
+@app.after_serving
+async def server_shutdown():
+    await redis_client.close()
+    app.background_tasks.pop().cancel()
+
 
 async def generate_serial():
     today = datetime.datetime.today()
@@ -148,20 +161,17 @@ async def tracking():
 async def track_ws():
     while True:
         try:
-            try:
-                req = await websocket.receive_json()
-                receipt_zip = req['receipt_zip']
-                serial = req['serial']
-                serial = int(serial)
-                barcode = f"{config.BARCODE_ID:02d}" + f"{config.SRV_TYPE:03d}" + \
-                    str(config.MAILER_ID) + f"{serial:06d}" + str(receipt_zip)
-            except ValueError:
-                await websocket.send('Invalid input received on WebSocket.')
-                continue
-            result = await usps_api.get_piece_tracking(barcode)
-            await websocket.send_json(result)
-        except asyncio.CancelledError:
-            break
+            req = await websocket.receive_json()
+            receipt_zip = req['receipt_zip']
+            serial = req['serial']
+            serial = int(serial)
+            barcode = f"{config.BARCODE_ID:02d}" + f"{config.SRV_TYPE:03d}" + \
+                str(config.MAILER_ID) + f"{serial:06d}" + str(receipt_zip)
+        except ValueError:
+            await websocket.send('Invalid input received on WebSocket.')
+            continue
+        result = await usps_api.get_piece_tracking(barcode)
+        await websocket.send_json(result)
 
 @app.route('/validate_address', methods=['POST'])
 async def validate_address():
