@@ -1,12 +1,14 @@
-from quart import render_template, request, make_response, jsonify, session, websocket
-from . import imb
-from . import config
-import pdfkit
-from . import usps_api
-from . import app
 import datetime
 import aioredis
 import asyncio
+import pdfkit
+
+from quart import render_template, request, make_response, jsonify, session, websocket
+
+from . import imb
+from . import config
+from . import usps_api
+from . import app
 
 ROLLING_WINDOW = 50
 
