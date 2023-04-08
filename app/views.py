@@ -175,13 +175,13 @@ async def track_ws():
         tracking_data = await usps_api.get_piece_tracking(barcode)
         try:
             if tracking_data.get('data') and 'imb' in tracking_data['data']:
-                imb_data_key = f'imb:{tracking_data["data"]["imb"]}'
+                imb_data_key = f'imb:{tracking_data["data"]["imb"]}' # type: ignore
                 stored_scans_data = await redis_client.lrange(imb_data_key, 0, -1)
                 if 'scans' not in tracking_data['data']:
-                    tracking_data['data']['scans'] = []
+                    tracking_data['data']['scans'] = [] # type: ignore
                 for stored_scan in stored_scans_data:
-                    tracking_data['data']['scans'] = [json.loads(
-                        stored_scan)] + tracking_data['data']['scans']
+                    tracking_data['data']['scans'] = [json.loads( # type: ignore
+                        stored_scan)] + tracking_data['data']['scans'] # type: ignore
         except (KeyError, ValueError):
             pass
         await websocket.send_json(tracking_data)
