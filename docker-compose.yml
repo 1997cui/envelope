@@ -8,8 +8,12 @@ services:
     dns:
       - 8.8.8.8
       - 8.8.4.4
+    environment:
+      - TZ=America/Los_Angeles
     restart: always
 
   redis:
     image: "redis:latest"
+    environment:
+      - TZ=America/Los_Angeles
     restart: always

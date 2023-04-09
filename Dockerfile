@@ -21,4 +21,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["hypercorn", "-w", "4", "-b", "0.0.0.0:8080", "--root-path=/envelope/", "app:app"]
+CMD ["gunicorn", "app:app", "--workers", "4", "--worker-class", "app.ConfigurableWorker", "--bind", "0.0.0.0:8080", "--forwarded-allow-ips",""]
