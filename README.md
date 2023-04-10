@@ -15,7 +15,7 @@ A lightweight web service to generate USPS first class mail envelope with a trac
  - Config your redis server address
 ### Docker
  - Modify the docker file to meet your need
-   - `CMD ["hypercorn", "-w", "4", "-b", "0.0.0.0:8080", "--root-path=/envelope/", "app:app"]`
+   - `CMD ["gunicorn", "app:app", "--workers", "4", "--worker-class", "app.ConfigurableWorker", "--bind", "0.0.0.0:8080", "--forwarded-allow-ips",""]`
      - Define the path and the port
  - `docker-compose up -d`
 ### Enjoy
