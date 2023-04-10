@@ -169,7 +169,7 @@ async def track_ws():
             serial = int(serial)
             barcode = f"{config.BARCODE_ID:02d}" + f"{config.SRV_TYPE:03d}" + \
                 str(config.MAILER_ID) + f"{serial:06d}" + str(receipt_zip)
-        except ValueError:
+        except (ValueError, TypeError):
             await websocket.send('Invalid input received on WebSocket.')
             continue
         tracking_data = await usps_api.get_piece_tracking(barcode)

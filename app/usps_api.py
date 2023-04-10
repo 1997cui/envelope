@@ -75,7 +75,7 @@ async def token_maintain():
     else:
         refresh_token = refresh_token.decode('utf-8')
         resp = await refresh_token_usps(refresh_token)
-        if "error " in resp:
+        if "error" in resp:
             return
         token_type = resp['token_type']
         access_token = resp['access_token']
@@ -157,7 +157,7 @@ async def get_USPS_standardized_address(address):
         'state': response_dict['AddressValidateResponse']['Address']['State'],
         'zip5': response_dict['AddressValidateResponse']['Address']['Zip5'],
         'zip4': response_dict['AddressValidateResponse']['Address']['Zip4'],
-        'dp': response_dict['AddressValidateResponse']['Address']['DeliveryPoint'],
+        'dp': response_dict['AddressValidateResponse']['Address'].get('DeliveryPoint', ''),
     }
 
     return standardized_address
