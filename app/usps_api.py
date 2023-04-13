@@ -34,7 +34,11 @@ async def generate_token_usps(username: str,
         response = await httpx_client.post(urljoin(USPS_API_URL, "oauth/authenticate"), json=data, headers=headers)
     except httpx.HTTPError as err:
         return {"error": "HTTPError", "error_description": str(err)}
-    return response.json()
+    try:
+        response = response.json()
+    except ValueError:
+        return {"error": "ValueError", "error_description": "Invalid JSON"}
+    return response
 
 
 async def refresh_token_usps(refresh_token: str):
@@ -135,8 +139,10 @@ async def get_USPS_standardized_address(address):
         {address_xml}
     </AddressValidateRequest>
     """
-
-    response = await httpx_client.get(USPS_ADDRESS_API_URL, params={'API': 'Verify', 'XML': request_xml})
+    try:
+        response = await httpx_client.get(USPS_ADDRESS_API_URL, params={'API': 'Verify', 'XML': request_xml})
+    except httpx.HTTPError as err:
+        return {"error": "HTTPError", "error_description": str(err)}
     response_dict = xmltodict.parse(response.content)
 
     if 'Error' in response_dict:

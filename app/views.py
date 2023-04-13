@@ -189,7 +189,8 @@ async def track_ws():
 
 @app.route('/validate_address', methods=['POST'])
 async def validate_address():
-    zip_full = str((await request.form)['zip'])
+    zip_full = str((await request.form)['zip']).replace('-', '')
+    print(zip_full)
     zip5 = zip_full[:5]
     address = {
         'address1': (await request.form)['address1'],

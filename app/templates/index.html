@@ -30,7 +30,11 @@ h2 {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', "{{ url_for('validate_address') }}");
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    
+    form_dom = document.getElementById("addressform");
+    if (!form_dom.checkValidity()) {
+        form_dom.reportValidity();
+        return;
+    }
     var address = {
       firmname: encodeURIComponent(document.querySelector("input[name='recipient_company']").value.trim()),
       address1: encodeURIComponent(document.querySelector("input[name='recipient_address2']").value.trim()),
@@ -71,7 +75,7 @@ h2 {
   </h3>  
   <div class="container">
     <h2>Generate Envelope</h2>
-    <form method="POST" action="{{ url_for('generate') }}" target="_blank">
+    <form method="POST" action="{{ url_for('generate') }}" target="_blank" id="addressform">
 		<label for="sender_address">Sender Address:</label><br>
 		<textarea name="sender_address" rows="4" cols="50"></textarea><br>
 
