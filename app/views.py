@@ -148,7 +148,7 @@ async def download(format_type: str, doc_type: str):
         pdf = pdfkit.from_string(html, False, options=options)
         response = await make_response(pdf)
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'attachment; filename={format_type}.pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename={format_type}_{serial:06d}_{recipient_zip:s}.pdf'
         return response
     else:
         return "Document type not valid"
