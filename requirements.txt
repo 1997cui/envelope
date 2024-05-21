@@ -8,7 +8,7 @@ blinker==1.6.3
 certifi==2023.7.22
 click==8.1.7
 dill==0.3.7
-gunicorn==21.2.0
+gunicorn==22.0.0
 h11==0.14.0
 h2==4.1.0
 hpack==4.0.0
