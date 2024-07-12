@@ -176,7 +176,7 @@ async def track_ws():
         try:
             if tracking_data.get('data') and 'imb' in tracking_data['data']:
                 imb_data_key = f'imb:{tracking_data["data"]["imb"]}' # type: ignore
-                stored_scans_data = await redis_client.lrange(imb_data_key, 0, -1)
+                stored_scans_data = await redis_client.lrange(imb_data_key, 0, -1) # pyright: ignore [reportGeneralTypeIssues]
                 if 'scans' not in tracking_data['data']:
                     tracking_data['data']['scans'] = [] # type: ignore
                 for stored_scan in stored_scans_data:
@@ -238,7 +238,7 @@ async def usps_feed():
         }
 
         redis_key = f'imb:{barcode}'
-        await redis_client.rpush(redis_key, json.dumps(reformed_event))
+        await redis_client.rpush(redis_key, json.dumps(reformed_event)) # pyright: ignore [reportGeneralTypeIssues]
         ttl_seconds = 60 * 24 * 60 * 60
         await redis_client.expire(redis_key, ttl_seconds)
     return "Data stored in Redis."
