@@ -5,7 +5,7 @@ import time
 import sys
 import html
 import xmltodict
-import aioredis
+from redis import asyncio as aioredis
 import httpx
 
 from . import config

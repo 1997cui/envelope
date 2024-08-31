@@ -1,6 +1,6 @@
 import datetime
 import json
-import aioredis
+from redis import asyncio as aioredis
 import asyncio
 import pdfkit
 
