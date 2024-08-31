@@ -4,7 +4,7 @@ astroid==3.0.0
 async-timeout==4.0.3
 autopep8==2.0.4
 blinker==1.6.3
-certifi==2023.7.22
+certifi==2024.7.4
 click==8.1.7
 dill==0.3.7
 gunicorn==22.0.0
