@@ -20,15 +20,16 @@ redis_client = aioredis.Redis(host=config.REDIS_HOST, port=6379, db=0)
 async def server_init():
     async def token_maintain():
         while True:
-            await usps_api.token_maintain()
-            await asyncio.sleep(60 * 5)
+            await usps_api.iv_token_maintain()
+            await usps_api.new_api_token_maintain()
+            await asyncio.sleep(5 * 60)
     app.add_background_task(token_maintain)
 
 
 @app.after_serving
 async def server_shutdown():
     await redis_client.close()
-    app.background_tasks.pop().cancel()
+    print(app.background_tasks)
 
 
 async def generate_serial():
@@ -50,7 +51,7 @@ def generate_human_readable(receipt_zip: str, serial: int):
 def query_usps_tracking(receipt_zip: str, serial: int):
     barcode = generate_human_readable(receipt_zip, serial)
     barcode = barcode.replace('-', '')
-    app.add_background_task(usps_api.token_maintain)
+    app.add_background_task(usps_api.iv_token_maintain)
     return usps_api.get_piece_tracking(barcode)
 
 
@@ -192,7 +193,7 @@ async def validate_address():
     zip_full = str((await request.form)['zip']).replace('-', '')
     zip5 = zip_full[:5]
     address = {
-        'address1': (await request.form)['address1'],
+        'street_address': (await request.form)['street_address'],
         'address2': (await request.form)['address2'],
         'city': (await request.form)['city'],
         'state': (await request.form)['state'],
@@ -204,8 +205,9 @@ async def validate_address():
         address['dp'] = zip_full[9:11]
     if len((await request.form)['firmname']) > 0:
         address['firmname'] = (await request.form)['firmname']
-    standardized_address = await usps_api.get_USPS_standardized_address(address)
-
+    standardized_address = await usps_api.get_USPS_standardized_address_new(address)
+    if standardized_address.get('zip4', None) is None:
+        standardized_address['zip4']=''
     return jsonify(standardized_address)
 
 
