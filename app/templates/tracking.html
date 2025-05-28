@@ -34,31 +34,48 @@
             ws.send(JSON.stringify({ receipt_zip: receiptZip, serial: serial }));
         };
 
+        // Escape HTML special characters to prevent XSS
+        function escapeHTML(str) {
+            if (typeof str !== "string") str = String(str);
+            return str.replace(/[&<>"'`=\/]/g, function (s) {
+                return ({
+                    "&": "&amp;",
+                    "<": "&lt;",
+                    ">": "&gt;",
+                    '"': "&quot;",
+                    "'": "&#39;",
+                    "`": "&#96;",
+                    "=": "&#61;",
+                    "/": "&#47;"
+                })[s];
+            });
+        }
+
         function displayMessage(message) {
             let resultContainer = document.getElementById("result_container");
-            let content = `<p>${message}</p>`;
+            let content = `<p>${escapeHTML(message)}</p>`;
             resultContainer.innerHTML = content;
         }
 
         function displayError(error, error_description, details) {
             let resultContainer = document.getElementById("result_container");
-            let content = `<p>Error: ${error}</p>
-                   <p>Description: ${error_description}</p>
-                   <p>Details: ${details}</p>`;
+            let content = `<p>Error: ${escapeHTML(error)}</p>
+                   <p>Description: ${escapeHTML(error_description)}</p>
+                   <p>Details: ${escapeHTML(details)}</p>`;
             resultContainer.innerHTML = content;
         }
 
         function displayData(data) {
             let resultContainer = document.getElementById("result_container");
             let content = `
-                <p>Expected Delivery Date: ${data.expected_delivery_date}</p>
-                <p>Mail Class: ${data.mail_class}</p>
-                <p>Mail Shape: ${data.mail_shape}</p>
-                <p>Start The Clock Date: ${data.start_the_clock_date}</p>
-                <p>Start The Clock Facility Name: ${data.start_the_clock_facility_name}</p>
-                <p>Start The Clock Facility City: ${data.start_the_clock_facility_city}</p>
-                <p>Start The Clock Facility State: ${data.start_the_clock_facility_state}</p>
-                <p>Start The Clock Facility ZIP: ${data.start_the_clock_facility_zip}</p>
+                <p>Expected Delivery Date: ${escapeHTML(data.expected_delivery_date)}</p>
+                <p>Mail Class: ${escapeHTML(data.mail_class)}</p>
+                <p>Mail Shape: ${escapeHTML(data.mail_shape)}</p>
+                <p>Start The Clock Date: ${escapeHTML(data.start_the_clock_date)}</p>
+                <p>Start The Clock Facility Name: ${escapeHTML(data.start_the_clock_facility_name)}</p>
+                <p>Start The Clock Facility City: ${escapeHTML(data.start_the_clock_facility_city)}</p>
+                <p>Start The Clock Facility State: ${escapeHTML(data.start_the_clock_facility_state)}</p>
+                <p>Start The Clock Facility ZIP: ${escapeHTML(data.start_the_clock_facility_zip)}</p>
                 <table border="1">
                     <tr>
                         <th>Date/Time</th>
@@ -77,17 +94,17 @@
             data.scans.forEach(scan => {
                 content += `
                     <tr>
-                        <td>${scan.scan_date_time}</td>
-                        <td>${scan.scan_event_code}</td>
-                        <td>${scan.handling_event_type || 'N/A'}</td>
-                        <td>${scan.mail_phase || 'N/A'}</td>
-                        <td>${scan.machine_name || 'N/A'}</td>
-                        <td>${scan.scanner_type || 'N/A'}</td>
-                        <td>${scan.scan_facility_name || 'N/A'}</td>
-                        <td>${scan.scan_facility_locale_key || 'N/A'}</td>
-                        <td>${scan.scan_facility_city || 'N/A'}</td>
-                        <td>${scan.scan_facility_state || 'N/A'}</td>
-                        <td>${scan.scan_facility_zip || 'N/A'}</td>
+                        <td>${escapeHTML(scan.scan_date_time)}</td>
+                        <td>${escapeHTML(scan.scan_event_code)}</td>
+                        <td>${escapeHTML(scan.handling_event_type || 'N/A')}</td>
+                        <td>${escapeHTML(scan.mail_phase || 'N/A')}</td>
+                        <td>${escapeHTML(scan.machine_name || 'N/A')}</td>
+                        <td>${escapeHTML(scan.scanner_type || 'N/A')}</td>
+                        <td>${escapeHTML(scan.scan_facility_name || 'N/A')}</td>
+                        <td>${escapeHTML(scan.scan_facility_locale_key || 'N/A')}</td>
+                        <td>${escapeHTML(scan.scan_facility_city || 'N/A')}</td>
+                        <td>${escapeHTML(scan.scan_facility_state || 'N/A')}</td>
+                        <td>${escapeHTML(scan.scan_facility_zip || 'N/A')}</td>
                     </tr>`;
             });
 
