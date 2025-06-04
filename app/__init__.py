@@ -8,7 +8,7 @@ app = Quart(__name__)
 app.secret_key = config.FLASK_SESSION_KEY
 
 from . import views
-from uvicorn.workers import UvicornWorker
+from uvicorn_worker import UvicornWorker
 
 
 class ConfigurableWorker(UvicornWorker):

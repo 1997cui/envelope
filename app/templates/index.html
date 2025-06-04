@@ -37,8 +37,8 @@ h2 {
     }
     var address = {
       firmname: encodeURIComponent(document.querySelector("input[name='recipient_company']").value.trim()),
-      address1: encodeURIComponent(document.querySelector("input[name='recipient_address2']").value.trim()),
-      address2: encodeURIComponent(document.querySelector("input[name='recipient_street']").value.trim()),
+      address2: encodeURIComponent(document.querySelector("input[name='recipient_address2']").value.trim()),
+      street_address: encodeURIComponent(document.querySelector("input[name='recipient_street']").value.trim()),
       city: encodeURIComponent(document.querySelector("input[name='recipient_city']").value.trim()),
       state: encodeURIComponent(document.querySelector("input[name='recipient_state']").value.trim()),
       zip: encodeURIComponent(document.querySelector("input[name='recipient_zip']").value.trim())
@@ -55,8 +55,8 @@ h2 {
           alert('Error validating address: ' + address.error);
         } else {
           document.querySelector("input[name='recipient_company']").value = address.firmname;
-          document.querySelector("input[name='recipient_address2']").value = address.address1;
-          document.querySelector("input[name='recipient_street']").value = address.address2;
+          document.querySelector("input[name='recipient_address2']").value = address.address2;
+          document.querySelector("input[name='recipient_street']").value = address.street_address;
           document.querySelector("input[name='recipient_city']").value = address.city;
           document.querySelector("input[name='recipient_state']").value = address.state;
           document.querySelector("input[name='recipient_zip']").value = address.zip5 + address.zip4 + address.dp;
